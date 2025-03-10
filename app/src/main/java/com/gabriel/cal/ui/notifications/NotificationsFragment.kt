@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import com.gabriel.cal.AlarmHelper
+import com.gabriel.cal.SharedViewModel
 import com.gabriel.cal.databinding.FragmentNotificationsBinding
 import java.util.*
 
@@ -17,44 +17,39 @@ class NotificationsFragment : Fragment() {
     private var _binding: FragmentNotificationsBinding? = null
     private val binding get() = _binding!!
 
+    // ViewModel compartido
+    private val sharedViewModel: SharedViewModel by activityViewModels()
+
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val notificationsViewModel =
-            ViewModelProvider(this).get(NotificationsViewModel::class.java)
-
         _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
-        val textView: TextView = binding.textNotifications
-        val button: Button = binding.selectDateButton  // Referencia al botón
-
-        notificationsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
-
-        // Acción cuando se presiona el botón: Mostrar el selector de fecha
-        button.setOnClickListener {
-            showDatePicker(textView)
-        }
-
-        return root
+        return binding.root
     }
 
-    private fun showDatePicker(textView: TextView) {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val datePickerDialog = DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
-            val selectedDate = "$selectedDay/${selectedMonth + 1}/$selectedYear"
-            textView.text = "Fecha seleccionada: $selectedDate"
-        }, year, month, day)
+        binding.selectDateButton.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        datePickerDialog.show()
+            // Muestra el DatePickerDialog
+            DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
+                // Configura la fecha seleccionada (esta fecha puede venir a medianoche)
+                calendar.set(selectedYear, selectedMonth, selectedDay)
+                val dateMillis = calendar.timeInMillis
+
+                // Agrega la fecha al ViewModel
+                sharedViewModel.addSelectedDate(dateMillis)
+
+                // Programa la alarma para esa fecha a las 5:00 PM
+                AlarmHelper.scheduleAlarmForDate(requireContext(), dateMillis)
+            }, year, month, day).show()
+        }
     }
 
     override fun onDestroyView() {

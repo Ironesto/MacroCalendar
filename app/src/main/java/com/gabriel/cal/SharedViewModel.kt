@@ -5,11 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class SharedViewModel : ViewModel() {
-    // Guardamos la fecha seleccionada en milisegundos (Long)
-    private val _selectedDate = MutableLiveData<Long>()
-    val selectedDate: LiveData<Long> = _selectedDate
+    private val _selectedDates = MutableLiveData<Set<Long>>(emptySet())
+    val selectedDates: LiveData<Set<Long>> get() = _selectedDates
 
-    fun setSelectedDate(dateInMillis: Long) {
-        _selectedDate.value = dateInMillis
+    fun addSelectedDate(dateInMillis: Long) {
+        _selectedDates.value = _selectedDates.value?.plus(dateInMillis) ?: setOf(dateInMillis)
     }
 }
