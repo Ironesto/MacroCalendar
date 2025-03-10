@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.gabriel.cal" />
+                  <option name="mobileSdkAppId" value="1:50898894250:android:392cdbf1a66fca8d177fd3" />
+                  <option name="projectId" value="macrocalendar-37689" />
+                  <option name="projectNumber" value="50898894250" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

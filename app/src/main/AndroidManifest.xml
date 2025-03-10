@@ -2,12 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permiso para notificaciones -->
+    <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Permiso para programar alarmas exactas -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cal"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -27,8 +29,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Declaración del receptor para las alarmas -->
         <receiver
             android:name=".AlarmReceiver"
             android:exported="true" />
+
+        <!-- Receptor para reprogramar alarmas tras el reinicio -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>

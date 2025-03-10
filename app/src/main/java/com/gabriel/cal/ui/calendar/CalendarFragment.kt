@@ -10,6 +10,10 @@ import com.prolificinteractive.materialcalendarview.CalendarDay
 import com.gabriel.cal.SharedViewModel
 import com.gabriel.cal.databinding.FragmentCalendarBinding
 import java.util.*
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CalendarFragment : Fragment() {
 
@@ -30,16 +34,27 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Carga los días seleccionados (si aún no se han cargado)
+        if (sharedViewModel.selectedDates.value.isNullOrEmpty()) {
+            sharedViewModel.loadSelectedDates()
+        }
+
+        // Observa el LiveData para actualizar los decoradores solo si hay cambios reales.
         sharedViewModel.selectedDates.observe(viewLifecycleOwner) { dateSet ->
-            val calendarDays = dateSet.map { CalendarDay.from(Date(it)) }.toSet()
-
-            // Limpia decoradores previos
-            binding.calendarView.removeDecorators()
-
-            // Agrega el decorador con todas las fechas seleccionadas
-            binding.calendarView.addDecorator(SelectedDatesDecorator(requireContext(), calendarDays))
+            // Si el conjunto actual es igual al ya mostrado, no es necesario actualizar
+            // (podrías guardar el conjunto anterior en una variable local y compararlo).
+            viewLifecycleOwner.lifecycleScope.launch {
+                val calendarDays = withContext(Dispatchers.Default) {
+                    dateSet.map { CalendarDay.from(Date(it)) }.toSet()
+                }
+                // Aquí podrías comparar con un conjunto guardado previamente
+                // y solo actualizar si son distintos.
+                binding.calendarView.removeDecorators()
+                binding.calendarView.addDecorator(SelectedDatesDecorator(requireContext(), calendarDays))
+            }
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

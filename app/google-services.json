@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "50898894250",
+    "project_id": "macrocalendar-37689",
+    "storage_bucket": "macrocalendar-37689.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50898894250:android:392cdbf1a66fca8d177fd3",
+        "android_client_info": {
+          "package_name": "com.gabriel.cal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvf7uXb8ZsKZt-HTjXdUycmR3zJSOoF88"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
