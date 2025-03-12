@@ -1,27 +1,34 @@
 package com.gabriel.cal.ui.calendar
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.prolificinteractive.materialcalendarview.CalendarDay
+import com.prolificinteractive.materialcalendarview.OnDateSelectedListener
+import com.gabriel.cal.AlarmHelper
 import com.gabriel.cal.SharedViewModel
 import com.gabriel.cal.databinding.FragmentCalendarBinding
-import java.util.*
-import androidx.lifecycle.lifecycleScope
+import com.gabriel.cal.ui.calendar.MacroColorDecorator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 class CalendarFragment : Fragment() {
 
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
 
-    // ViewModel compartido
+    // ViewModel compartido (que contiene macros y asignaciones)
     private val sharedViewModel: SharedViewModel by activityViewModels()
+
+    // Variable para almacenar el día seleccionado (en milisegundos)
+    private var currentlySelectedDate: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,27 +41,72 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Carga los días seleccionados (si aún no se han cargado)
-        if (sharedViewModel.selectedDates.value.isNullOrEmpty()) {
-            sharedViewModel.loadSelectedDates()
-        }
+        // Asegúrate de cargar las asignaciones de macros desde Firebase.
+        // Esto puede hacerse desde el SharedViewModel, por ejemplo:
+        sharedViewModel.loadMacroAssignments()
 
-        // Observa el LiveData para actualizar los decoradores solo si hay cambios reales.
-        sharedViewModel.selectedDates.observe(viewLifecycleOwner) { dateSet ->
-            // Si el conjunto actual es igual al ya mostrado, no es necesario actualizar
-            // (podrías guardar el conjunto anterior en una variable local y compararlo).
-            viewLifecycleOwner.lifecycleScope.launch {
-                val calendarDays = withContext(Dispatchers.Default) {
-                    dateSet.map { CalendarDay.from(Date(it)) }.toSet()
+        // Observa la LiveData de asignaciones para pintar los días según el color de la macro asignada.
+        sharedViewModel.assignedMacros.observe(viewLifecycleOwner) { assignmentMap ->
+            lifecycleScope.launch {
+                // Agrupa los días por el color de la macro asignada.
+                val groupedByColor = mutableMapOf<Int, MutableSet<CalendarDay>>()
+                assignmentMap.forEach { (dayMillis, macro) ->
+                    val calDay = CalendarDay.from(Date(dayMillis))
+                    val colorInt = try {
+                        Color.parseColor(macro.color)
+                    } catch (e: Exception) {
+                        Color.WHITE
+                    }
+                    groupedByColor.getOrPut(colorInt) { mutableSetOf() }.add(calDay)
                 }
-                // Aquí podrías comparar con un conjunto guardado previamente
-                // y solo actualizar si son distintos.
                 binding.calendarView.removeDecorators()
-                binding.calendarView.addDecorator(SelectedDatesDecorator(requireContext(), calendarDays))
+                groupedByColor.forEach { (color, days) ->
+                    binding.calendarView.addDecorator(MacroColorDecorator(days, color))
+                }
             }
         }
-    }
 
+        // Listener para seleccionar un día en el calendario.
+        binding.calendarView.setOnDateChangedListener(OnDateSelectedListener { _, date, selected ->
+            if (selected) {
+                currentlySelectedDate = date.date.time
+                binding.textSelectedDate.text = "Fecha seleccionada: ${date.day}/${date.month + 1}/${date.year}"
+                // Muestra un botón "Añadir Macro" para asignar una macro a ese día.
+                binding.btnAddMacro.visibility = View.VISIBLE
+            }
+        })
+
+        // Botón "Añadir Macro": abre un diálogo con la lista de macros para asignar al día seleccionado.
+        binding.btnAddMacro.setOnClickListener {
+            val macros = sharedViewModel.macros.value?.toList() ?: emptyList()
+            if (macros.isEmpty()) return@setOnClickListener
+
+            val macroNames = macros.map { it.name }.toTypedArray()
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Elige una macro")
+                .setItems(macroNames) { _, which ->
+                    val selectedMacro = macros[which]
+                    currentlySelectedDate?.let { dayMillis ->
+                        // Combina el día seleccionado con la hora y minuto de la macro para obtener el momento de la alarma.
+                        val cal = Calendar.getInstance().apply {
+                            timeInMillis = dayMillis
+                            set(Calendar.HOUR_OF_DAY, selectedMacro.hour)
+                            set(Calendar.MINUTE, selectedMacro.minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        val alarmTime = cal.timeInMillis
+                        // Programa la alarma con la hora y minuto de la macro.
+                        AlarmHelper.scheduleAlarmForDate(requireContext(), alarmTime)
+                        // Asigna la macro al día en el ViewModel y en Firebase.
+                        sharedViewModel.assignMacroToDay(dayMillis, selectedMacro)
+                        // Oculta el botón "Añadir Macro" (opcional)
+                        binding.btnAddMacro.visibility = View.GONE
+                    }
+                }
+                .show()
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

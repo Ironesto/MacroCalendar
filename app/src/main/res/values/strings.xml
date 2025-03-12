@@ -3,4 +3,6 @@
     <string name="title_home">Inicio</string>
     <string name="title_dashboard">Calendario</string>
     <string name="title_notifications">Macros</string>
+    <string name="macro_info">%1$s - %2$d:%3$02d</string>
+
 </resources>

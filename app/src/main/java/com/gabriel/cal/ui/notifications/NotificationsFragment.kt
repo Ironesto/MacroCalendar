@@ -17,7 +17,7 @@ class NotificationsFragment : Fragment() {
     private var _binding: FragmentNotificationsBinding? = null
     private val binding get() = _binding!!
 
-    // ViewModel compartido
+    // Obtén el SharedViewModel a nivel de Activity
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -31,22 +31,23 @@ class NotificationsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Asume que en el layout hay un botón con id "selectDateButton"
         binding.selectDateButton.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
             val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-            // Muestra el DatePickerDialog
+            // Abre un DatePickerDialog para que el usuario seleccione una fecha
             DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
-                // Configura la fecha seleccionada (esta fecha puede venir a medianoche)
+                // Configura el calendario con la fecha seleccionada
                 calendar.set(selectedYear, selectedMonth, selectedDay)
                 val dateMillis = calendar.timeInMillis
 
-                // Agrega la fecha al ViewModel
-                sharedViewModel.addSelectedDate(dateMillis)
+                // Agrega la alarma (con identificador único) al SharedViewModel
+                sharedViewModel.addSelectedAlarm(dateMillis)
 
-                // Programa la alarma para esa fecha a las 5:00 PM
+                // Programa la alarma para esa fecha (por ejemplo, a las 5 PM)
                 AlarmHelper.scheduleAlarmForDate(requireContext(), dateMillis)
             }, year, month, day).show()
         }

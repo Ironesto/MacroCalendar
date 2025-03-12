@@ -52,6 +52,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation (platform(libs.firebase.bom))
+    implementation(libs.material.calendarview)
     implementation (libs.firebase.firestore.ktx)
     // Dependencia de Material CalendarView con exclusión de la antigua librería de soporte:
     implementation(libs.material.calendarview) {
