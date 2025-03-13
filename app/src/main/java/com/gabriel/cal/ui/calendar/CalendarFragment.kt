@@ -106,6 +106,27 @@ class CalendarFragment : Fragment() {
                 }
                 .show()
         }
+
+        sharedViewModel.assignedMacros.observe(viewLifecycleOwner) { assignmentMap ->
+            lifecycleScope.launch {
+                // Agrupa los días según el color de la macro asignada.
+                val groupedByColor = mutableMapOf<Int, MutableSet<CalendarDay>>()
+                assignmentMap.forEach { (dayMillis, macro) ->
+                    val calDay = CalendarDay.from(Date(dayMillis))
+                    val colorInt = try {
+                        android.graphics.Color.parseColor(macro.color)
+                    } catch (e: Exception) {
+                        android.graphics.Color.WHITE
+                    }
+                    groupedByColor.getOrPut(colorInt) { mutableSetOf() }.add(calDay)
+                }
+                binding.calendarView.removeDecorators()
+                groupedByColor.forEach { (color, days) ->
+                    binding.calendarView.addDecorator(MacroDayDecorator(requireContext(), days, color))
+                }
+            }
+        }
+
     }
 
     override fun onDestroyView() {

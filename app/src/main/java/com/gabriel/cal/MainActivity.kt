@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         // Precarga las macros desde Firebase
         sharedViewModel.loadMacros()
-
+        sharedViewModel.loadMacroAssignments()
         // Configura el NavHostFragment de forma programática
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main)
                 as? NavHostFragment ?: NavHostFragment.create(R.navigation.mobile_navigation).also {

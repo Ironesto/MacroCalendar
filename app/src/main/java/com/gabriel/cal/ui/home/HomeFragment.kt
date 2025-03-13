@@ -14,9 +14,9 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    private lateinit var alarmsAdapter: AlarmsAdapter
+    private val sharedViewModel: SharedViewModel by activityViewModels()
+    private lateinit var assignedMacroAdapter: AssignedMacroAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,21 +29,22 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Configura el RecyclerView
-        alarmsAdapter = AlarmsAdapter(emptyList())
-        binding.rvAlarms.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAlarms.adapter = alarmsAdapter
+        assignedMacroAdapter = AssignedMacroAdapter(emptyList()) { dayMillis ->
+            // Llama a la función del ViewModel que elimina la asignación
+            sharedViewModel.removeAssignmentForDay(dayMillis)
+        }
+        binding.rvAssignedMacros.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAssignedMacros.adapter = assignedMacroAdapter
 
-        // Observa el LiveData para actualizar la lista de alarmas
-        sharedViewModel.selectedAlarms.observe(viewLifecycleOwner) { alarms ->
-            val currentTime = System.currentTimeMillis()
-            // Filtra las alarmas futuras y ordénalas por fecha
-            val futureAlarms = alarms.filter { it.date >= currentTime }
-                .sortedBy { it.date }
-                .map { it.date } // Extrae solo la fecha (Long)
-            alarmsAdapter.updateData(futureAlarms)
+        // Observa la LiveData de asignaciones y actualiza el RecyclerView
+        sharedViewModel.assignedMacros.observe(viewLifecycleOwner) { assignmentMap ->
+            // Convierte el mapa en una lista de pares (dayMillis, MacroEntry) ordenada por día (más próximos primero)
+            val sortedList = assignmentMap.toList().sortedBy { it.first }
+            assignedMacroAdapter.updateData(sortedList)
         }
 
+        // Carga las asignaciones desde Firebase
+        sharedViewModel.loadMacroAssignments()
     }
 
     override fun onDestroyView() {

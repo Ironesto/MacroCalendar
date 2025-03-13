@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,7 +13,6 @@ import com.gabriel.cal.SharedViewModel
 import com.gabriel.cal.databinding.FragmentMacrosBinding
 import com.gabriel.cal.ui.home.MacroAdapter
 import java.util.*
-import androidx.core.view.isGone
 
 class MacrosFragment : Fragment() {
 
@@ -21,10 +21,8 @@ class MacrosFragment : Fragment() {
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    // Variables para almacenar la selección del usuario
-    private var selectedColor: String = "#000000"
-    private var selectedHour: Int = 0
-    private var selectedMinute: Int = 0
+    // Variable para almacenar el color seleccionado; la hora y minuto se obtendrán directamente del TimePicker
+    private var selectedColor: String = "#FFBB86FC"
 
     private lateinit var macroAdapter: MacroAdapter
 
@@ -63,14 +61,12 @@ class MacrosFragment : Fragment() {
                 .show()
         }
 
-        // TimePicker: usando un TimePickerDialog para seleccionar la hora
+        // Configura el TimePicker para abrir un TimePickerDialog al pulsarlo
         binding.timePicker.setOnClickListener {
             val calendar = Calendar.getInstance()
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
             val currentMinute = calendar.get(Calendar.MINUTE)
             TimePickerDialog(requireContext(), { _, hour, minute ->
-                selectedHour = hour
-                selectedMinute = minute
                 binding.timePicker.hour = hour
                 binding.timePicker.minute = minute
             }, currentHour, currentMinute, true).show()
@@ -83,20 +79,20 @@ class MacrosFragment : Fragment() {
                 binding.etMacroName.error = "Ingresa un nombre"
                 return@setOnClickListener
             }
-            val calendar = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, selectedHour)
-                set(Calendar.MINUTE, selectedMinute)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            val dateMillis = calendar.timeInMillis
-            sharedViewModel.addMacro(macroName, selectedColor, selectedHour, selectedMinute)
+            // Obtén los valores actuales del TimePicker (si el usuario no los modificó, usarán los valores predeterminados del widget)
+            val hour = binding.timePicker.hour
+            val minute = binding.timePicker.minute
+
+            // Llama a addMacro usando macroName, selectedColor, y los valores actuales del TimePicker
+            sharedViewModel.addMacro(macroName, selectedColor, hour, minute)
 
             // Reinicia el formulario y oculta el contenedor
             binding.etMacroName.text.clear()
             binding.tvSelectedColor.text = "Color seleccionado: #000000"
-            binding.timePicker.hour = calendar.get(Calendar.HOUR_OF_DAY)
-            binding.timePicker.minute = calendar.get(Calendar.MINUTE)
+            // Opcional: reinicia el TimePicker a la hora actual
+            val now = Calendar.getInstance()
+            binding.timePicker.hour = now.get(Calendar.HOUR_OF_DAY)
+            binding.timePicker.minute = now.get(Calendar.MINUTE)
             binding.macroFormContainer.visibility = View.GONE
             binding.btnToggleMacroForm.text = "Crear Macro"
         }
@@ -105,20 +101,16 @@ class MacrosFragment : Fragment() {
         macroAdapter = MacroAdapter(emptyList()) { macroToDelete ->
             sharedViewModel.removeMacro(macroToDelete)
         }
-//        val currentHour = binding.timePicker.hour
-//        val currentMinute = binding.timePicker.minute
-//        selectedHour = currentHour
-//        selectedMinute = currentMinute
         binding.rvMacros.layoutManager = LinearLayoutManager(requireContext())
         binding.rvMacros.adapter = macroAdapter
 
-        // Observa la LiveData de macros
+        // Observa la LiveData de macros y actualiza la lista ordenada por nombre
         sharedViewModel.macros.observe(viewLifecycleOwner) { macros ->
             val sortedMacros = macros.sortedBy { it.name }
             macroAdapter.updateData(sortedMacros)
         }
 
-        // Carga las macros solo si es necesario
+        // Precarga las macros desde Firebase solo si es necesario
         sharedViewModel.loadMacrosIfNeeded()
     }
 

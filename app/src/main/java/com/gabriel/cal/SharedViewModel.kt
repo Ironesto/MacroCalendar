@@ -144,31 +144,22 @@ class SharedViewModel : ViewModel() {
 // MÉTODOS PARA ASIGNACIONES DE MACROS A DÍAS
 
     fun assignMacroToDay(dayMillis: Long, macro: MacroEntry) {
-        // Extrae el día, mes y año usando Calendar
-        val calendar = Calendar.getInstance().apply { timeInMillis = dayMillis }
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        val month = calendar.get(Calendar.MONTH) + 1  // Los meses inician en 0
-        val year = calendar.get(Calendar.YEAR)
-
-        // Actualiza la asignación en la LiveData local
         val current = _assignedMacros.value ?: mutableMapOf()
         current[dayMillis] = macro
         _assignedMacros.value = current
-
-        // Guarda la asignación en Firestore, incluyendo macroId, macroName, day, month y year
         db.collection("macroAssignments")
             .document(dayMillis.toString())
             .set(
                 mapOf(
                     "macroId" to macro.id,
                     "macroName" to macro.name,
-                    "day" to day,
-                    "month" to month,
-                    "year" to year
+                    "day" to Calendar.getInstance().apply { timeInMillis = dayMillis }.get(Calendar.DAY_OF_MONTH),
+                    "month" to Calendar.getInstance().apply { timeInMillis = dayMillis }.get(Calendar.MONTH) + 1,
+                    "year" to Calendar.getInstance().apply { timeInMillis = dayMillis }.get(Calendar.YEAR)
                 )
             )
             .addOnSuccessListener {
-                Log.d("SharedViewModel", "Macro asignada para el día $day/$month/$year con nombre ${macro.name}")
+                Log.d("SharedViewModel", "Macro asignada para el día $dayMillis")
             }
             .addOnFailureListener { e ->
                 Log.w("SharedViewModel", "Error al asignar macro", e)
@@ -179,12 +170,11 @@ class SharedViewModel : ViewModel() {
         db.collection("macroAssignments")
             .get()
             .addOnSuccessListener { querySnapshot ->
-                // Necesitamos que las macros ya estén cargadas
-                val macrosList = _macros.value?.toList() ?: emptyList()
                 val assignmentMap = mutableMapOf<Long, MacroEntry>()
-                for (doc in querySnapshot.documents) {
-                    val dayMillis = doc.id.toLongOrNull() ?: continue
-                    val macroId = doc.getString("macroId") ?: continue
+                val macrosList = _macros.value?.toList() ?: emptyList()
+                querySnapshot.documents.forEach { doc ->
+                    val dayMillis = doc.id.toLongOrNull() ?: return@forEach
+                    val macroId = doc.getString("macroId") ?: return@forEach
                     val macro = macrosList.find { it.id == macroId }
                     if (macro != null) {
                         assignmentMap[dayMillis] = macro
@@ -198,10 +188,13 @@ class SharedViewModel : ViewModel() {
             }
     }
 
+
     fun removeAssignmentForDay(dayMillis: Long) {
+        // Actualiza el mapa local
         val current = _assignedMacros.value ?: mutableMapOf()
         current.remove(dayMillis)
         _assignedMacros.value = current
+        // Elimina el documento correspondiente en Firebase
         db.collection("macroAssignments")
             .document(dayMillis.toString())
             .delete()
