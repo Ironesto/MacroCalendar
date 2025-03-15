@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Solicitar permiso POST_NOTIFICATIONS en Android 13 (API 33) o superior
+        // Solicitar permiso POST_NOTIFICATIONS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(
@@ -41,7 +42,6 @@ class MainActivity : AppCompatActivity() {
         sharedViewModel.loadMacros()
         sharedViewModel.loadMacroAssignments()
 
-        // Configura el NavHostFragment de forma programática
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main)
                 as? NavHostFragment ?: NavHostFragment.create(R.navigation.mobile_navigation).also {
             supportFragmentManager.beginTransaction()
@@ -55,8 +55,8 @@ class MainActivity : AppCompatActivity() {
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home,
-                R.id.navigation_dashboard,  // CalendarFragment
-                R.id.navigation_notifications  // NotificationsFragment
+                R.id.navigation_calendar,
+                R.id.navigation_macro
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("MainActivity", "Permiso POST_NOTIFICATIONS concedido")
             } else {
                 Log.w("MainActivity", "Permiso POST_NOTIFICATIONS no concedido")
-                // Aquí puedes mostrar un mensaje al usuario explicando que sin este permiso no se mostrarán notificaciones
+                Toast.makeText(this, "Sin este permiso no se mostrarán notificaciones", Toast.LENGTH_LONG).show();
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

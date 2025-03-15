@@ -15,7 +15,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val alarmDate = intent.getLongExtra("alarm_date", 0L)
 
-        // Creamos un PendingIntent para abrir la app cuando el usuario toca la notificación.
+        // Crear un PendingIntent para abrir la app cuando el usuario toca la notificación.
         val notificationIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -27,7 +27,7 @@ class AlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Construimos la notificación
+        // Construir la notificación
         val notificationBuilder = NotificationCompat.Builder(context, "macro_notifications")
             .setSmallIcon(R.drawable.ic_notifications_black_24dp) // Asegúrate de disponer de un recurso de ícono adecuado
             .setContentTitle("Macro Programada")
@@ -36,7 +36,7 @@ class AlarmReceiver : BroadcastReceiver() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Mostramos la notificación
+        // Mostrar la notificación
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             with(NotificationManagerCompat.from(context)) {
                 notify(alarmDate.hashCode(), notificationBuilder.build())

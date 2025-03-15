@@ -61,7 +61,7 @@ class MacrosFragment : Fragment() {
                 .show()
         }
 
-        // Configura el TimePicker para abrir un TimePickerDialog al pulsarlo
+        // Configurar el TimePicker
         binding.timePicker.setOnClickListener {
             val calendar = Calendar.getInstance()
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -79,7 +79,7 @@ class MacrosFragment : Fragment() {
                 binding.etMacroName.error = "Ingresa un nombre"
                 return@setOnClickListener
             }
-            // Obtén los valores actuales del TimePicker (si el usuario no los modificó, usarán los valores predeterminados del widget)
+            // Obtencion los valores actuales del TimePicker (si el usuario no los modificó, usarán los valores predeterminados del widget)
             val hour = binding.timePicker.hour
             val minute = binding.timePicker.minute
 
@@ -97,7 +97,7 @@ class MacrosFragment : Fragment() {
             binding.btnToggleMacroForm.text = "Crear Macro"
         }
 
-        // Configura el RecyclerView para listar las macros
+        // Configurar el RecyclerView para listar las macros
         macroAdapter = MacroAdapter(emptyList()) { macroToDelete ->
             sharedViewModel.removeMacro(macroToDelete)
         }

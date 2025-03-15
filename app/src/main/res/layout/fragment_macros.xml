@@ -32,7 +32,8 @@
             android:id="@+id/etMacroName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nombre de la macro" />
+            android:hint="Nombre de la macro"
+            android:importantForAutofill="no"/>
 
         <Button
             android:id="@+id/btnSelectColor"

@@ -9,13 +9,7 @@ import com.google.firebase.ktx.Firebase
 import java.util.*
 
 class SharedViewModel : ViewModel() {
-    // Para alarmas (ya existentes)
-    private val _selectedAlarms = MutableLiveData<Set<AlarmEntry>>(emptySet())
-    val selectedAlarms: LiveData<Set<AlarmEntry>> get() = _selectedAlarms
-
     private val db = Firebase.firestore
-
-    // MÉTODOS DE ALARMAS (ya existentes)
 
     // Para macros
     private val _macros = MutableLiveData<Set<MacroEntry>>(emptySet())
@@ -144,7 +138,6 @@ class SharedViewModel : ViewModel() {
 
 
     fun removeAssignmentForDay(dayMillis: Long) {
-        // Actualiza el mapa local
         val current = _assignedMacros.value ?: mutableMapOf()
         current.remove(dayMillis)
         _assignedMacros.value = current
