@@ -16,52 +16,6 @@ class SharedViewModel : ViewModel() {
     private val db = Firebase.firestore
 
     // MÉTODOS DE ALARMAS (ya existentes)
-    fun addSelectedAlarm(dateInMillis: Long) {
-        val alarmId = UUID.randomUUID().toString()
-        val newAlarm = AlarmEntry(alarmId, dateInMillis)
-        _selectedAlarms.value = _selectedAlarms.value?.plus(newAlarm) ?: setOf(newAlarm)
-        saveAlarmToFirestore(newAlarm)
-    }
-
-    private fun saveAlarmToFirestore(alarm: AlarmEntry) {
-        db.collection("alarms")
-            .document(alarm.id)
-            .set(mapOf("date" to alarm.date))
-            .addOnSuccessListener {
-                Log.d("SharedViewModel", "Alarma guardada con ID: ${alarm.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w("SharedViewModel", "Error al guardar la alarma", e)
-            }
-    }
-
-    fun removeSelectedAlarm(alarm: AlarmEntry) {
-        _selectedAlarms.value = _selectedAlarms.value?.minus(alarm)
-        db.collection("alarms")
-            .document(alarm.id)
-            .delete()
-            .addOnSuccessListener {
-                Log.d("SharedViewModel", "Alarma eliminada con ID: ${alarm.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w("SharedViewModel", "Error al eliminar la alarma", e)
-            }
-    }
-
-    fun loadSelectedAlarms() {
-        db.collection("alarms")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val alarms = querySnapshot.documents.mapNotNull { doc ->
-                    val date = doc.getLong("date")
-                    if (date != null) AlarmEntry(doc.id, date) else null
-                }.toSet()
-                _selectedAlarms.value = alarms
-            }
-            .addOnFailureListener { e ->
-                Log.w("SharedViewModel", "Error al cargar las alarmas", e)
-            }
-    }
 
     // Para macros
     private val _macros = MutableLiveData<Set<MacroEntry>>(emptySet())

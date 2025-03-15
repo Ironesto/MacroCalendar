@@ -8,14 +8,6 @@ object AlarmScheduler {
     private const val PREFS_NAME = "alarm_prefs"
     private const val KEY_DATES = "selected_dates"  // Por simplicidad, una cadena separada por comas
 
-    // Guarda una fecha en las SharedPreferences (esta función debería llamarse cada vez que programes una alarma)
-    fun saveDate(context: Context, dateInMillis: Long) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val current = prefs.getString(KEY_DATES, "") ?: ""
-        val newValue = if (current.isEmpty()) "$dateInMillis" else "$current,$dateInMillis"
-        prefs.edit().putString(KEY_DATES, newValue).apply()
-    }
-
     // Recupera el conjunto de fechas guardadas
     fun loadDates(context: Context): Set<Long> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

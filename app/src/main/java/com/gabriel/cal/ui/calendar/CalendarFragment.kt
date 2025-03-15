@@ -97,7 +97,7 @@ class CalendarFragment : Fragment() {
                         }
                         val alarmTime = cal.timeInMillis
                         // Programa la alarma con la hora y minuto de la macro.
-                        AlarmHelper.scheduleAlarmForDate(requireContext(), alarmTime)
+                        AlarmHelper.scheduleAlarmForDate(requireContext(), alarmTime, selectedMacro.name)
                         // Asigna la macro al día en el ViewModel y en Firebase.
                         sharedViewModel.assignMacroToDay(dayMillis, selectedMacro)
                         // Oculta el botón "Añadir Macro" (opcional)
