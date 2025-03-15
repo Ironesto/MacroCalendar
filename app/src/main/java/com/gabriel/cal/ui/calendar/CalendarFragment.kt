@@ -13,11 +13,9 @@ import com.prolificinteractive.materialcalendarview.OnDateSelectedListener
 import com.gabriel.cal.AlarmHelper
 import com.gabriel.cal.SharedViewModel
 import com.gabriel.cal.databinding.FragmentCalendarBinding
-import com.gabriel.cal.ui.calendar.MacroColorDecorator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
+import androidx.core.graphics.toColorInt
 
 class CalendarFragment : Fragment() {
 
@@ -53,7 +51,7 @@ class CalendarFragment : Fragment() {
                 assignmentMap.forEach { (dayMillis, macro) ->
                     val calDay = CalendarDay.from(Date(dayMillis))
                     val colorInt = try {
-                        Color.parseColor(macro.color)
+                        macro.color.toColorInt()
                     } catch (e: Exception) {
                         Color.WHITE
                     }
@@ -87,7 +85,7 @@ class CalendarFragment : Fragment() {
                 .setItems(macroNames) { _, which ->
                     val selectedMacro = macros[which]
                     currentlySelectedDate?.let { dayMillis ->
-                        // Combina el día seleccionado con la hora y minuto de la macro para obtener el momento de la alarma.
+                        // Combinar el día seleccionado con la hora y minuto de la macro para obtener el momento de la alarma.
                         val cal = Calendar.getInstance().apply {
                             timeInMillis = dayMillis
                             set(Calendar.HOUR_OF_DAY, selectedMacro.hour)
@@ -96,11 +94,11 @@ class CalendarFragment : Fragment() {
                             set(Calendar.MILLISECOND, 0)
                         }
                         val alarmTime = cal.timeInMillis
-                        // Programa la alarma con la hora y minuto de la macro.
+                        // Programar la alarma con la hora y minuto de la macro.
                         AlarmHelper.scheduleAlarmForDate(requireContext(), alarmTime, selectedMacro.name)
-                        // Asigna la macro al día en el ViewModel y en Firebase.
+                        // Asignar la macro al día en el ViewModel y en Firebase.
                         sharedViewModel.assignMacroToDay(dayMillis, selectedMacro)
-                        // Oculta el botón "Añadir Macro" (opcional)
+                        // Ocultar el botón "Añadir Macro" (opcional)
                         binding.btnAddMacro.visibility = View.GONE
                     }
                 }
@@ -114,9 +112,9 @@ class CalendarFragment : Fragment() {
                 assignmentMap.forEach { (dayMillis, macro) ->
                     val calDay = CalendarDay.from(Date(dayMillis))
                     val colorInt = try {
-                        android.graphics.Color.parseColor(macro.color)
+                        macro.color.toColorInt()
                     } catch (e: Exception) {
-                        android.graphics.Color.WHITE
+                        Color.WHITE
                     }
                     groupedByColor.getOrPut(colorInt) { mutableSetOf() }.add(calDay)
                 }
