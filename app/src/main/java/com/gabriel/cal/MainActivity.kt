@@ -1,6 +1,7 @@
 package com.gabriel.cal
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +16,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.gabriel.cal.databinding.ActivityMainBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,10 +26,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Verifica si el usuario está autenticado
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Solicitar permiso POST_NOTIFICATIONS
+        // Solicitar permiso POST_NOTIFICATIONS (para Android Tiramisu en adelante)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(
@@ -38,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Precarga las macros y asignaciones desde Firebase
+        // Precargar macros y asignaciones del usuario
         sharedViewModel.loadMacros()
         sharedViewModel.loadMacroAssignments()
 
@@ -73,7 +84,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("MainActivity", "Permiso POST_NOTIFICATIONS concedido")
             } else {
                 Log.w("MainActivity", "Permiso POST_NOTIFICATIONS no concedido")
-                Toast.makeText(this, "Sin este permiso no se mostrarán notificaciones", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Sin este permiso no se mostrarán notificaciones", Toast.LENGTH_LONG).show()
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

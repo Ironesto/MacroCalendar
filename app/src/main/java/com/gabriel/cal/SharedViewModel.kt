@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.util.*
@@ -15,38 +16,38 @@ class SharedViewModel : ViewModel() {
     private val _macros = MutableLiveData<Set<MacroEntry>>(emptySet())
     val macros: LiveData<Set<MacroEntry>> get() = _macros
 
-    // LiveData para asignaciones: Map<dayMillis, MacroEntry>
+    // Para asignaciones: Map<dayMillis, MacroEntry>
     private val _assignedMacros = MutableLiveData<MutableMap<Long, MacroEntry>>(mutableMapOf())
     val assignedMacros: LiveData<MutableMap<Long, MacroEntry>> get() = _assignedMacros
 
-    // MÉTODOS PARA MACROS
+    // Obtiene el UID del usuario autenticado
+    private fun getUserId(): String? {
+        return FirebaseAuth.getInstance().currentUser?.uid
+    }
 
     fun addMacro(name: String, color: String, hour: Int, minute: Int) {
+        val uid = getUserId() ?: return
         val macroId = UUID.randomUUID().toString()
         val newMacro = MacroEntry(macroId, name, color, hour, minute)
         _macros.value = _macros.value?.plus(newMacro) ?: setOf(newMacro)
-        saveMacroToFire(newMacro)
-    }
-
-    private fun saveMacroToFire(macro: MacroEntry) {
-        db.collection("macros")
-            .document(macro.id)
+        db.collection("users")
+            .document(uid)
+            .collection("macros")
+            .document(macroId)
             .set(
                 mapOf(
-                    "name" to macro.name,
-                    "color" to macro.color,
-                    "hour" to macro.hour,
-                    "minute" to macro.minute
+                    "name" to name,
+                    "color" to color,
+                    "hour" to hour,
+                    "minute" to minute
                 )
             )
             .addOnSuccessListener {
-                Log.d("SharedViewModel", "Macro guardada con ID: ${macro.id}")
+                Log.d("SharedViewModel", "Macro guardada con ID: $macroId")
             }
             .addOnFailureListener { e ->
                 Log.w("SharedViewModel", "Error al guardar la macro", e)
             }
-        Log.d("SharedViewModel", "saliendo para guardar macro")
-
     }
 
     fun loadMacrosIfNeeded() {
@@ -56,7 +57,10 @@ class SharedViewModel : ViewModel() {
     }
 
     fun loadMacros() {
-        db.collection("macros")
+        val uid = getUserId() ?: return
+        db.collection("users")
+            .document(uid)
+            .collection("macros")
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val macrosList = querySnapshot.documents.mapNotNull { doc ->
@@ -77,8 +81,11 @@ class SharedViewModel : ViewModel() {
     }
 
     fun removeMacro(macro: MacroEntry) {
+        val uid = getUserId() ?: return
         _macros.value = _macros.value?.minus(macro)
-        db.collection("macros")
+        db.collection("users")
+            .document(uid)
+            .collection("macros")
             .document(macro.id)
             .delete()
             .addOnSuccessListener {
@@ -89,13 +96,14 @@ class SharedViewModel : ViewModel() {
             }
     }
 
-// MÉTODOS PARA ASIGNACIONES DE MACROS A DÍAS
-
     fun assignMacroToDay(dayMillis: Long, macro: MacroEntry) {
+        val uid = getUserId() ?: return
         val current = _assignedMacros.value ?: mutableMapOf()
         current[dayMillis] = macro
         _assignedMacros.value = current
-        db.collection("macroAssignments")
+        db.collection("users")
+            .document(uid)
+            .collection("macroAssignments")
             .document(dayMillis.toString())
             .set(
                 mapOf(
@@ -115,7 +123,10 @@ class SharedViewModel : ViewModel() {
     }
 
     fun loadMacroAssignments() {
-        db.collection("macroAssignments")
+        val uid = getUserId() ?: return
+        db.collection("users")
+            .document(uid)
+            .collection("macroAssignments")
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val assignmentMap = mutableMapOf<Long, MacroEntry>()
@@ -136,13 +147,14 @@ class SharedViewModel : ViewModel() {
             }
     }
 
-
     fun removeAssignmentForDay(dayMillis: Long) {
+        val uid = getUserId() ?: return
         val current = _assignedMacros.value ?: mutableMapOf()
         current.remove(dayMillis)
         _assignedMacros.value = current
-        // Elimina el documento correspondiente en Firebase
-        db.collection("macroAssignments")
+        db.collection("users")
+            .document(uid)
+            .collection("macroAssignments")
             .document(dayMillis.toString())
             .delete()
             .addOnSuccessListener {
