@@ -34,14 +34,12 @@ object AlarmHelper {
             timeInMillis = dateInMillis
         }
 
-
         if (calendar.timeInMillis < System.currentTimeMillis()) return
 
         try {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
         } catch (e: SecurityException) {
             e.printStackTrace()
         }
     }
 }
-

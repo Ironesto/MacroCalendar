@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val alarmDate = intent.getLongExtra("alarm_date", 0L)
-
+        Log.d("AlarmReceiver", "Recibida alarma para la fecha: $alarmDate")
         // Crear un PendingIntent para abrir la app cuando el usuario toca la notificación.
         val notificationIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

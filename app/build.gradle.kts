@@ -68,6 +68,7 @@ dependencies {
     implementation(platform(libs.google.firebase.bom.v3280))
     implementation(libs.com.google.firebase.firebase.auth.ktx)
     implementation(libs.com.google.firebase.firebase.firestore.ktx)
+    implementation(libs.androidx.runtime.livedata)
 
     // Debug para Compose
     debugImplementation(libs.ui.tooling)
@@ -89,4 +90,17 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.material.calendarview)
+
+    implementation (libs.androidx.ui.v130)
+    implementation (libs.androidx.ui.text.v130)
+
+    implementation (libs.androidx.compose.ui.ui)
+    implementation (libs.androidx.ui.text)
+
+    implementation(platform(libs.androidx.compose.bom.v20230300))
+    implementation(libs.androidx.compose.ui.ui2)
+    implementation(libs.ui.text)
+    implementation(libs.androidx.compose.material3.material3)
+
+
 }

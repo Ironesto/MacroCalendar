@@ -5,117 +5,265 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isGone
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.gabriel.cal.MacroEntry
 import com.gabriel.cal.SharedViewModel
-import com.gabriel.cal.databinding.FragmentMacrosBinding
-import com.gabriel.cal.ui.home.MacroAdapter
-import java.util.*
+import java.util.Calendar
+import java.util.UUID
+import androidx.core.graphics.toColorInt
 
 class MacrosFragment : Fragment() {
 
-    private var _binding: FragmentMacrosBinding? = null
-    private val binding get() = _binding!!
-
     private val sharedViewModel: SharedViewModel by activityViewModels()
-
-    // Variable para almacenar el color seleccionado; la hora y minuto se obtendrán directamente del TimePicker
-    private var selectedColor: String = "#FFBB86FC"
-
-    private lateinit var macroAdapter: MacroAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentMacrosBinding.inflate(inflater, container, false)
-        return binding.root
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MacrosScreen(sharedViewModel)
+            }
+        }
     }
+}
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+@Composable
+fun MacrosScreen(viewModel: SharedViewModel) {
+    val macros by viewModel.macros.observeAsState(emptySet())
+    var editingMacro by remember { mutableStateOf<MacroEntry?>(null) }
+    var creatingNewMacro by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-        // Botón para alternar el formulario
-        binding.btnToggleMacroForm.setOnClickListener {
-            if (binding.macroFormContainer.isGone) {
-                binding.macroFormContainer.visibility = View.VISIBLE
-                binding.btnToggleMacroForm.text = "Ocultar formulario"
+    Surface(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+        Column {
+            if (editingMacro != null || creatingNewMacro) {
+                MacroForm(
+                    initialMacro = editingMacro,
+                    onSaveMacro = { macro ->
+                        if (creatingNewMacro)
+                            viewModel.addMacro(macro.name, macro.color, macro.hour, macro.minute)
+                        else
+                            viewModel.updateMacro(context, macro)
+                        editingMacro = null
+                        creatingNewMacro = false
+                    },
+                    onCancel = {
+                        editingMacro = null
+                        creatingNewMacro = false
+                    }
+                )
             } else {
-                binding.macroFormContainer.visibility = View.GONE
-                binding.btnToggleMacroForm.text = "Crear Macro"
-            }
-        }
-
-        // Botón para seleccionar color
-        binding.btnSelectColor.setOnClickListener {
-            val colorNames = arrayOf("Rojo", "Verde", "Azul", "Amarillo")
-            val colorValues = arrayOf("#FF0000", "#00FF00", "#0000FF", "#FFFF00")
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Selecciona un color")
-                .setItems(colorNames) { _, which ->
-                    selectedColor = colorValues[which]
-                    binding.tvSelectedColor.text = "Color seleccionado: $selectedColor"
+                Button(
+                    onClick = { creatingNewMacro = true },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                ) {
+                    Text("Crear Nueva Macro")
                 }
-                .show()
-        }
-
-        // Configurar el TimePicker
-        binding.timePicker.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-            val currentMinute = calendar.get(Calendar.MINUTE)
-            TimePickerDialog(requireContext(), { _, hour, minute ->
-                binding.timePicker.hour = hour
-                binding.timePicker.minute = minute
-            }, currentHour, currentMinute, true).show()
-        }
-
-        // Botón para guardar la macro
-        binding.btnCreateMacro.setOnClickListener {
-            val macroName = binding.etMacroName.text.toString().trim()
-            if (macroName.isEmpty()) {
-                binding.etMacroName.error = "Ingresa un nombre"
-                return@setOnClickListener
+                MacrosList(
+                    macros = macros.toList(),
+                    onDeleteMacro = viewModel::removeMacro,
+                    onEditMacro = { macro -> editingMacro = macro }
+                )
             }
-            // Obtencion los valores actuales del TimePicker (si el usuario no los modificó, usarán los valores predeterminados del widget)
-            val hour = binding.timePicker.hour
-            val minute = binding.timePicker.minute
-
-            // Llama a addMacro usando macroName, selectedColor, y los valores actuales del TimePicker
-            sharedViewModel.addMacro(macroName, selectedColor, hour, minute)
-
-            // Reinicia el formulario y oculta el contenedor
-            binding.etMacroName.text.clear()
-            binding.tvSelectedColor.text = "Color seleccionado: #000000"
-            // Opcional: reinicia el TimePicker a la hora actual
-            val now = Calendar.getInstance()
-            binding.timePicker.hour = now.get(Calendar.HOUR_OF_DAY)
-            binding.timePicker.minute = now.get(Calendar.MINUTE)
-            binding.macroFormContainer.visibility = View.GONE
-            binding.btnToggleMacroForm.text = "Crear Macro"
         }
-
-        // Configurar el RecyclerView para listar las macros
-        macroAdapter = MacroAdapter(emptyList()) { macroToDelete ->
-            sharedViewModel.removeMacro(macroToDelete)
-        }
-        binding.rvMacros.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvMacros.adapter = macroAdapter
-
-        // Observa la LiveData de macros y actualiza la lista ordenada por nombre
-        sharedViewModel.macros.observe(viewLifecycleOwner) { macros ->
-            val sortedMacros = macros.sortedBy { it.name }
-            macroAdapter.updateData(sortedMacros)
-        }
-
-        // Precarga las macros desde Firebase solo si es necesario
-        sharedViewModel.loadMacrosIfNeeded()
     }
+}
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+@Composable
+fun MacrosList(
+    macros: List<MacroEntry>,
+    onDeleteMacro: (MacroEntry) -> Unit,
+    onEditMacro: (MacroEntry) -> Unit
+) {
+    LazyColumn {
+        items(macros, key = { it.id }) { macro ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = try {
+                        androidx.compose.ui.graphics.Color(macro.color.toColorInt())
+                    } catch (e: Exception) {
+                        androidx.compose.ui.graphics.Color.White
+                    }
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    // Información de la macro alineada a la izquierda
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = macro.name)
+                        Text(text = "Hora: ${macro.hour}:${macro.minute.toString().padStart(2, '0')}")
+                    }
+                    // Botones "Modificar" y "Borrar" alineados a la derecha
+                    Row {
+                        Button(
+                            onClick = { onEditMacro(macro) },
+                            modifier = Modifier.padding(end = 4.dp)
+                        ) {
+                            Text("Modificar")
+                        }
+                        Button(
+                            onClick = { onDeleteMacro(macro) },
+                            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Borrar")
+                        }
+                    }
+                }
+            }
+        }
     }
+}
+
+@Composable
+fun MacroForm(
+    initialMacro: MacroEntry?,
+    onSaveMacro: (MacroEntry) -> Unit,
+    onCancel: () -> Unit
+) {
+    val context = LocalContext.current
+    var name by remember(initialMacro) { mutableStateOf(initialMacro?.name ?: "") }
+    // Opciones de color: (nombre, valor hexadecimal)
+    val colorOptions = listOf(
+        "Rojo" to "#FF0000",
+        "Verde" to "#00FF00",
+        "Azul" to "#0000FF",
+        "Amarillo" to "#FFFF00"
+    )
+    var selectedColorHex by remember(initialMacro) { mutableStateOf(initialMacro?.color ?: colorOptions.first().second) }
+    val selectedColorName = colorOptions.find { it.second == selectedColorHex }?.first ?: "Rojo"
+    var hour by remember(initialMacro) { mutableStateOf(initialMacro?.hour ?: 0) }
+    var minute by remember(initialMacro) { mutableStateOf(initialMacro?.minute ?: 0) }
+    var colorDropdownExpanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CustomNameField(
+            value = name,
+            onValueChange = { name = it },
+            label = "Nombre"
+        )
+        Box {
+            OutlinedButton(onClick = { colorDropdownExpanded = true }) {
+                Text("Color seleccionado: $selectedColorName")
+            }
+            DropdownMenu(
+                expanded = colorDropdownExpanded,
+                onDismissRequest = { colorDropdownExpanded = false }
+            ) {
+                colorOptions.forEach { (colorName, colorHex) ->
+                    DropdownMenuItem(
+                        onClick = {
+                            selectedColorHex = colorHex
+                            colorDropdownExpanded = false
+                        },
+                        text = { Text(text = colorName) }
+                    )
+                }
+            }
+        }
+        Button(onClick = {
+            val calendar = Calendar.getInstance()
+            TimePickerDialog(
+                context,
+                { _, selectedHour, selectedMinute ->
+                    hour = selectedHour
+                    minute = selectedMinute
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                true
+            ).show()
+        }) {
+            Text("Seleccionar hora: $hour:${minute.toString().padStart(2, '0')}")
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                if (name.isBlank()) {
+                    // Puedes mostrar un mensaje de error aquí
+                } else {
+                    onSaveMacro(
+                        initialMacro?.copy(
+                            name = name,
+                            color = selectedColorHex,
+                            hour = hour,
+                            minute = minute
+                        ) ?: MacroEntry(UUID.randomUUID().toString(), name, selectedColorHex, hour, minute)
+                    )
+                }
+            }) {
+                Text("Guardar")
+            }
+            OutlinedButton(onClick = onCancel) {
+                Text("Cancelar")
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomNameField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String = "Nombre"
+) {
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
+        decorationBox = { innerTextField ->
+            Box(modifier = Modifier.padding(4.dp)) {
+                if (value.isEmpty()) {
+                    Text(
+                        text = label,
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+                innerTextField()
+            }
+        }
+    )
 }

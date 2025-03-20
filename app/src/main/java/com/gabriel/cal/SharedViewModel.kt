@@ -1,5 +1,6 @@
 package com.gabriel.cal
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -95,6 +96,40 @@ class SharedViewModel : ViewModel() {
                 Log.w("SharedViewModel", "Error al eliminar la macro", e)
             }
     }
+
+    fun updateMacro(context: Context, macro: MacroEntry) {
+        val uid = getUserId() ?: return
+        // Actualiza la lista local reemplazando la macro modificada
+        _macros.value = _macros.value?.map { if (it.id == macro.id) macro else it }?.toSet()
+
+        // Actualiza la macro en Firebase
+        db.collection("users")
+            .document(uid)
+            .collection("macros")
+            .document(macro.id)
+            .set(macro)
+            .addOnSuccessListener {
+                Log.d("SharedViewModel", "Macro actualizada con ID: ${macro.id}")
+                // Si la macro actualizada está asignada, reprograma la alarma con los nuevos valores
+                _assignedMacros.value?.forEach { (dayMillis, assignedMacro) ->
+                    if (assignedMacro.id == macro.id) {
+                        val cal = Calendar.getInstance().apply {
+                            timeInMillis = dayMillis
+                            set(Calendar.HOUR_OF_DAY, macro.hour)
+                            set(Calendar.MINUTE, macro.minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        AlarmHelper.scheduleAlarmForDate(context, cal.timeInMillis, macro.name)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.w("SharedViewModel", "Error al actualizar la macro", e)
+            }
+    }
+
+
 
     fun assignMacroToDay(dayMillis: Long, macro: MacroEntry) {
         val uid = getUserId() ?: return
