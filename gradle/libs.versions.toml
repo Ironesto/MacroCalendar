@@ -1,7 +1,27 @@
 [versions]
+activityCompose = "1.10.1"
+activityComposeVersion = "1.10.1"
 agp = "8.9.0"
+androidxAppcompat = "1.7.0"
+androidxComposeBom = "2025.03.00"
+androidxComposeBomVersion = "2024.03.00"
+androidxConstraintlayout = "2.2.1"
+androidxCoreKtx = "1.15.0"
+androidxEspressoCore = "3.5.1"
+androidxJunit = "1.2.1"
+androidxJunitVersion = "1.2.1"
+androidxNavigationFragmentKtx = "2.7.7"
+androidxNavigationUiKtx = "2.7.7"
+appcompatVersion = "1.7.0"
+composeBom = "2025.03.00"
+composeBomVersion = "2025.03.00"
+constraintlayoutVersion = "2.2.1"
+coreKtxVersion = "1.15.0"
+espressoCoreVersion = "3.6.1"
 firebaseAuthKtx = "23.2.0"
 firebaseBom = "33.10.0"
+firebaseBomVersion = "33.10.0"
+googleFirebaseBom = "33.10.0"
 googleServices = "4.4.2"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
@@ -9,24 +29,62 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+lifecycleLivedataKtxVersion = "2.8.7"
+lifecycleViewmodelKtxVersion = "2.8.7"
 material = "1.12.0"
 constraintlayout = "2.2.1"
 lifecycleLivedataKtx = "2.8.7"
 lifecycleViewmodelKtx = "2.8.7"
 materialCalendarview = "1.4.3"
 navigationFragmentKtx = "2.8.9"
+navigationFragmentKtxVersion = "2.8.9"
 navigationUiKtx = "2.8.9"
+navigationUiKtxVersion = "2.8.9"
+navigation = "2.7.7"
 
 [libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-activity-compose-v190 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
+androidx-appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+androidx-compose-bom-v20240300 = { module = "androidx.compose:compose-bom", version.ref = "composeBomVersion" }
+androidx-compose-compose-bom-v20240300 = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBomVersion" }
+androidx-constraintlayout-v214 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx-v1130 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
+androidx-espresso-core-v351 = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
+androidx-junit-v115 = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
+androidx-lifecycle-livedata-ktx-v270 = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
+androidx-lifecycle-viewmodel-ktx-v270 = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtxVersion" }
+androidx-material3 = { module = "androidx.compose.material3:material3" }
+androidx-navigation-fragment-ktx-v277 = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtxVersion" }
+androidx-navigation-ui-ktx-v277 = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationUiKtxVersion" }
+androidx-ui = { module = "androidx.compose.ui:ui" }
+androidx-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+com-google-firebase-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
+com-google-firebase-firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+compose-bom-v20240300 = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
+constraintlayout-v214 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
+core-ktx-v1130 = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
+espresso-core-v351 = { module = "androidx.test.espresso:espresso-core", version.ref = "androidxEspressoCore" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-bom-v3280 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+google-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
+google-firebase-bom-v3280 = { module = "com.google.firebase:firebase-bom", version.ref = "googleFirebaseBom" }
+google-firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+junit-v115 = { module = "androidx.test.ext:junit", version.ref = "androidxJunitVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
@@ -34,8 +92,18 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 material-calendarview = { module = "com.prolificinteractive:material-calendarview", version.ref = "materialCalendarview" }
+material3 = { module = "androidx.compose.material3:material3" }
+navigation-fragment-ktx-v277 = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidxNavigationFragmentKtx" }
+navigation-ui-ktx-v277 = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidxNavigationUiKtx" }
+ui = { module = "androidx.compose.ui:ui" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
